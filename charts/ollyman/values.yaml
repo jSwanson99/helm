@@ -1,0 +1,7 @@
+components:
+  k8s_monitoring: true
+  ingress_gateway: true
+  data_processing: true
+  
+
+opentelemetry-kube-stack: {}
