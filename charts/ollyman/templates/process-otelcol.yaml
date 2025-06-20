@@ -1,0 +1,64 @@
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: otelcol-process
+spec:
+  mode: deployment
+  image: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:latest
+  observability: {}
+  replicas: 3
+
+  config:
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+
+    processors:
+      logdedup: {}
+      cumulativetodelta: {}
+      batch:
+        send_batch_size: 8192
+        timeout: 5s
+      transform:
+        metric_statements:
+          - context: datapoint
+            statements:
+              - set(resource.attributes["service.name"], datapoint.attributes["host"]) where resource.attributes["service.name"] == nil
+        log_statements:
+          - statements:
+              - set(resource.attributes["service.name"], log.attributes["hostname"]) where resource.attributes["service.name"] == nil
+              - set(log.body, Trim(log.attributes["message"])) where resource.attributes["service.name"] == "vyos"
+              - set(log.cache["msg"], log.body) where resource.attributes["service.name"] == "coredns"
+              - set(log.body, log.cache["msg"]["MESSAGE"]) where resource.attributes["service.name"] == "coredns"
+              - set(log.attributes, ExtractPatterns(log.body, "\\[(?P<level>\\S+)\\] (?P<client_ip>[^:]+):(?P<client_port>\\d+) - (?P<query_id>\\S+) \"(?P<type>\\S+) (?P<direction>\\S+) (?P<name>\\S+) (?P<protocol>\\S+) (?P<request_size>\\d+) (?P<dnssec_ok>\\S+) (?P<bufsize>\\d+)\" (?P<rcode>\\S+) (?P<flags>[^\\s]+) (?P<response_size>\\d+) (?P<duration_seconds>[\\d\\.]+s)")) where resource.attributes["service.name"] == "coredns"
+
+    exporters:
+      clickhouse:
+        endpoint: "tcp://clickhouse:9000?compress=lz4&async_insert=1"
+        create_schema: true
+        username: admin
+        password: admin
+        sending_queue:
+          queue_size: 1000
+        retry_on_failure:
+          enabled: true
+          initial_interval: 5s
+          max_interval: 30s
+          max_elapsed_time: 300s
+
+    service:
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [transform, batch]
+          exporters: [clickhouse]
+        metrics:
+          receivers: [otlp]
+          processors: [cumulativetodelta, transform, batch]
+          exporters: [clickhouse]
+        logs:
+          receivers: [otlp]
+          processors: [logdedup, transform, batch]
+          exporters: [clickhouse]
