@@ -1,11 +1,10 @@
-apiVersion: opentelemetry.io/v1beta1
-kind: OpenTelemetryCollector
+apiVersion: v1
+kind: ConfigMap
 metadata:
-  name: ingress
-spec:
-  image: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:latest
-  observability: null
-  config:
+  name: otelcol-ingress-config
+  namespace: monitoring
+data:
+  config.yaml: |
     receivers:
       otlp:
         protocols:

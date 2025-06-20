@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: otelcol-ingress
+  namespace: monitoring
+  labels:
+    app: otelcol-ingress
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: otelcol-ingress
+  template:
+    metadata:
+      labels:
+        app: otelcol-ingress
+    spec:
+      volumes:
+      - name: otelcol-config
+        configMap:
+          name: otelcol-ingress-config
+      containers:
+      - name: otelcol-ingress
+        image: otel/opentelemetry-collector-contrib:0.127.0
+        args:
+        - "--config=/etc/otelcol/config.yaml"
+        volumeMounts:
+        - name: otelcol-config
+          mountPath: /etc/otelcol
+        ports:
+        - containerPort: 4317
