@@ -50,8 +50,9 @@ data:
         resolver:
           static:
             hostnames:
-              - lb-test-1:4317
-              - lb-test-2:4317
+              - otelcol-ingress.monitoring.svc.cluster.local:4317
+
+
     service:
       pipelines:
         traces:
