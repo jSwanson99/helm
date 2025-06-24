@@ -16,6 +16,7 @@ spec:
      labels:
        app: otelcol-process
    spec:
+     serviceAccountName: otel-collector
      volumes:
      - name: otelcol-config
        configMap:

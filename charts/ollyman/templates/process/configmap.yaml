@@ -26,9 +26,22 @@ data:
           - statements:
             - set(resource.attributes["service.name"], log.attributes["hostname"]) where resource.attributes["service.name"] == nil
             - set(log.body, Trim(log.attributes["message"])) where resource.attributes["service.name"] == "vyos"
-            - set(log.cache["msg"], log.body) where resource.attributes["service.name"] == "coredns"
-            - set(log.body, log.cache["msg"]["MESSAGE"]) where resource.attributes["service.name"] == "coredns"
-            - set(log.attributes, ExtractPatterns(log.body, "\\[(?P<level>\\S+)\\] (?P<client_ip>[^:]+):(?P<client_port>\\d+) - (?P<query_id>\\S+) \"(?P<type>\\S+) (?P<direction>\\S+) (?P<name>\\S+) (?P<protocol>\\S+) (?P<request_size>\\d+) (?P<dnssec_ok>\\S+) (?P<bufsize>\\d+)\" (?P<rcode>\\S+) (?P<flags>[^\\s]+) (?P<response_size>\\d+) (?P<duration_seconds>[\\d\\.]+s)")) where resource.attributes["service.name"] == "coredns"
+      k8sattributes:	
+        auth_type: "serviceAccount"	
+        passthrough: false	
+        extract:	
+          metadata:	
+            - k8s.pod.name	
+            - k8s.pod.uid	
+            - k8s.deployment.name	
+            - k8s.namespace.name	
+          annotations:	
+            - tag_name: argocd.app.name	
+              key: argocd.argoproj.io/instance	
+              from: pod	
+            - tag_name: argocd.app.namespace	
+              key: argocd.argoproj.io/instance-namespace	
+              from: pod
 
     exporters:
       clickhouse:
@@ -48,13 +61,13 @@ data:
       pipelines:
         traces:
           receivers: [otlp]
-          processors: [transform, batch] 
+          processors: [transform, k8sattributes, batch] 
           exporters: [clickhouse]
         logs:
           receivers: [otlp]
-          processors: [logdedup, transform, batch] 
+          processors: [logdedup, k8sattributes, transform, batch] 
           exporters: [clickhouse]
         metrics:
           receivers: [otlp]
-          processors: [transform, cumulativetodelta, batch] 
+          processors: [transform, k8sattributes, cumulativetodelta, batch] 
           exporters: [clickhouse]

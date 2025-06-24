@@ -3,5 +3,7 @@ components:
   ingress_gateway: true
   data_processing: true
   
+ingress:
+  ip: ''
 
 opentelemetry-kube-stack: {}
