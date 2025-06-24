@@ -40,6 +40,22 @@ data:
                   action: keep
                   regex: 9964
 
+    processors:
+      transform:
+        metric_statements:
+          - context: datapoint
+            statements:
+            - set(resource.attributes["service.name"], resource.attributes["k8s.container.name"]) where resource.attributes["service.name"] == nil
+            - set(resource.attributes["service.name"], "unknown") where resource.attributes["service.name"] == nil
+        log_statements:
+          - statements:
+            - set(resource.attributes["service.name"], resource.attributes["k8s.container.name"]) where resource.attributes["service.name"] == nil
+            - set(resource.attributes["service.name"], "unknown") where resource.attributes["service.name"] == nil
+        trace_statements:
+          - statements:
+            - set(resource.attributes["service.name"], resource.attributes["k8s.container.name"]) where resource.attributes["service.name"] == nil
+            - set(resource.attributes["service.name"], "unknown") where resource.attributes["service.name"] == nil
+
     exporters:
       loadbalancing:
         routing_key: service
@@ -50,11 +66,20 @@ data:
         resolver:
           static:
             hostnames:
-              - otelcol-ingress.monitoring.svc.cluster.local:4317
+              - otelcol-process.monitoring.svc.cluster.local:4317
 
 
     service:
       pipelines:
         traces:
-          receivers: [otlp]
+          receivers: [otlp, zipkin]
+          processors: [transform]
+          exporters: [loadbalancing]
+        logs:
+          receivers: [otlp, syslog]
+          processors: [transform]
+          exporters: [loadbalancing]
+        metrics:
+          receivers: [otlp, prometheus]
+          processors: [transform]
           exporters: [loadbalancing]
