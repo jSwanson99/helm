@@ -50,6 +50,7 @@ data:
         log_statements:
           - statements:
             - set(resource.attributes["service.name"], resource.attributes["k8s.container.name"]) where resource.attributes["service.name"] == nil
+            - set(resource.attributes["service.name"], log.attributes["hostname"]) where resource.attributes["service.name"] == nil and log.attributes['hostnames'] != nil
             - set(resource.attributes["service.name"], "unknown") where resource.attributes["service.name"] == nil
         trace_statements:
           - statements:
