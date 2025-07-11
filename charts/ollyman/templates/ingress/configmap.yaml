@@ -41,6 +41,8 @@ data:
                   regex: 9964
 
     processors:
+      cumulativetodelta: {}
+      logdedup: {}
       transform:
         metric_statements:
           - context: datapoint
@@ -79,9 +81,9 @@ data:
           exporters: [loadbalancing]
         logs:
           receivers: [otlp, syslog]
-          processors: [transform]
+          processors: [logdedup, transform]
           exporters: [loadbalancing]
         metrics:
-          receivers: [otlp, prometheus]
-          processors: [transform]
+          receivers: [otlp]
+          processors: [transform, cumulativetodelta]
           exporters: [loadbalancing]

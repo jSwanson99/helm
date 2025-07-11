@@ -12,8 +12,6 @@ data:
             endpoint: 0.0.0.0:4317
 
     processors:
-      logdedup: {}
-      cumulativetodelta: {}
       batch:
         send_batch_size: 8192
         timeout: 5s
@@ -26,22 +24,17 @@ data:
           - statements:
             - set(resource.attributes["service.name"], log.attributes["hostname"]) where resource.attributes["service.name"] == nil
             - set(log.body, Trim(log.attributes["message"])) where resource.attributes["service.name"] == "vyos"
-      k8sattributes:	
-        auth_type: "serviceAccount"	
-        passthrough: false	
-        extract:	
-          metadata:	
-            - k8s.pod.name	
-            - k8s.pod.uid	
-            - k8s.deployment.name	
-            - k8s.namespace.name	
-          annotations:	
-            - tag_name: argocd.app.name	
-              key: argocd.argoproj.io/instance	
-              from: pod	
-            - tag_name: argocd.app.namespace	
-              key: argocd.argoproj.io/instance-namespace	
-              from: pod
+            # Log Level, primarily for k8s logs
+            - set(log.severity_text, "FATAL") where IsMatch(log.body, "(?i)(fatal|panic|critical|segmentation fault|out of memory)") and log.severity_text == ""	
+            - set(log.severity_number, 21) where log.severity_text == "FATAL"	
+            - set(log.severity_text, "ERROR") where IsMatch(log.body, "(?i)(error|failed|failure|exception|stacktrace|traceback)") and log.severity_text == ""	
+            - set(log.severity_number, 17) where log.severity_text == "ERROR"	
+            - set(log.severity_text, "WARN") where IsMatch(log.body, "(?i)(warn|warning|deprecated|retry|timeout)") and  log.severity_text == ""	
+            - set(log.severity_number, 13) where log.severity_text == "WARN"	
+            - set(log.severity_text, "INFO") where IsMatch(log.body, "(?i)(info|information|starting|started|stopping|stopped|ready|healthy)") and log.severity_text == ""	
+            - set(log.severity_number, 9) where log.severity_text == "INFO"	
+            - set(log.severity_text, "DEBUG") where IsMatch(log.body, "(?i)(debug|trace|verbose)") and log.severity_text == ""	
+            - set(log.severity_number, 5) where log.severity_text == "DEBUG"
 
     exporters:
       clickhouse:
@@ -61,13 +54,13 @@ data:
       pipelines:
         traces:
           receivers: [otlp]
-          processors: [transform, k8sattributes, batch] 
+          processors: [transform, batch] 
           exporters: [clickhouse]
         logs:
           receivers: [otlp]
-          processors: [logdedup, k8sattributes, transform, batch] 
+          processors: [transform, batch] 
           exporters: [clickhouse]
         metrics:
           receivers: [otlp]
-          processors: [transform, k8sattributes, cumulativetodelta, batch] 
+          processors: [transform, batch] 
           exporters: [clickhouse]
