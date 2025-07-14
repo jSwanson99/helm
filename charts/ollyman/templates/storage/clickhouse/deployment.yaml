@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: clickhouse
+  namespace: monitoring
+  labels:
+    app: clickhouse
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: clickhouse
+  template:
+    metadata:
+      labels:
+        app: clickhouse
+    spec:
+      securityContext:
+        runAsUser: 1100
+        runAsGroup: 1100
+        fsGroup: 1100
+      containers:
+      - name: clickhouse
+        image: {{ .Values.clickhouse.image }}
+        ports:
+        - containerPort: {{ .Values.clickhouse.nativePort }}
+        - containerPort: {{ .Values.clickhouse.httpPort }}
+        env:
+        - name: CLICKHOUSE_USER
+          value: {{ .Values.clickhouse.user }}
+        - name: CLICKHOUSE_PASSWORD
+          value: {{ .Values.clickhouse.password }}
+        volumeMounts:
+        - name: clickhouse-data
+          mountPath: /var/lib/clickhouse
+        - name: clickhouse-config
+          mountPath: /etc/clickhouse-server/config.d/custom.xml
+          subPath: config.xml
+      volumes:
+        - name: clickhouse-data
+          persistentVolumeClaim:
+            claimName: clickhouse-pvc
+        - name: clickhouse-config
+          configMap:
+            name: clickhouse-config

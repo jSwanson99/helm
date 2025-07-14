@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: clickhouse-mcp
+  namespace: monitoring
+spec:
+  type: LoadBalancer
+  selector:
+    app: clickhouse-mcp
+  ports:
+  - name: client
+    port: {{ .Values.clickhouse.nativePort }}
+    targetPort: 9000
+  - name: http
+    port: {{ .Values.clickhouse.httpPort }}
+    targetPort: 8123

@@ -7,3 +7,17 @@ ingress:
   ip: ''
 
 opentelemetry-kube-stack: {}
+
+clickhouse:
+  user: admin
+  password: admin
+  storageClassName: truenas-nfs # TODO
+  nativePort: 9000
+  httpPort: 8123
+  service:
+    name: clickhouse
+  mcp:
+    enable: true
+    transport: http
+    port: 9000
+  image: clickhouse/clickhouse-server:25.1.5
