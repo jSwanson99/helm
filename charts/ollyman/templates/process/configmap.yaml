@@ -20,6 +20,17 @@ data:
           - context: datapoint
             statements:
               - set(resource.attributes["service.name"], datapoint.attributes["host"]) where resource.attributes["service.name"] == nil
+              # Workload Name
+              - set(resource.attributes["k8s.workload.name"], resource.attributes["k8s.deployment.name"]) where resource.attributes["k8s.deployment.name"] != nil and resource.attributes["k8s.deployment.name"] != ""
+              - set(resource.attributes["k8s.workload.name"], resource.attributes["k8s.statefulset.name"]) where resource.attributes["k8s.statefulset.name"] != nil and resource.attributes["k8s.statefulset.name"] != "" and resource.attributes["k8s.workload.name"] == nil
+              - set(resource.attributes["k8s.workload.name"], resource.attributes["k8s.daemonset.name"]) where resource.attributes["k8s.daemonset.name"] != nil and resource.attributes["k8s.daemonset.name"] != "" and resource.attributes["k8s.workload.name"] == nil
+              - set(resource.attributes["k8s.workload.name"], resource.attributes["k8s.replicaset.name"]) where resource.attributes["k8s.replicaset.name"] != nil and resource.attributes["k8s.replicaset.name"] != "" and resource.attributes["k8s.workload.name"] == nil
+              # Workload Type
+              - set(resource.attributes["k8s.workload.type"], "deployment") where resource.attributes["k8s.deployment.name"] != nil and resource.attributes["k8s.workload.type"] == nil
+              - set(resource.attributes["k8s.workload.type"], "statefulset") where resource.attributes["k8s.statefulset.name"] != nil and resource.attributes["k8s.workload.type"] == nil
+              - set(resource.attributes["k8s.workload.type"], "daemonset") where resource.attributes["k8s.daemonset.name"] != nil and resource.attributes["k8s.workload.type"] == nil
+              - set(resource.attributes["k8s.workload.type"], "replicaset") where resource.attributes["k8s.replicaset.name"] != nil and resource.attributes["k8s.workload.type"] == nil
+              - set(resource.attributes["k8s.workload.type"], "unknown") where resource.attributes["k8s.workload.type"] == nil and resource.attributes["k8s.namespace.name"] != nil
         log_statements:
           - statements:
             - set(resource.attributes["service.name"], log.attributes["hostname"]) where resource.attributes["service.name"] == nil
@@ -35,6 +46,18 @@ data:
             - set(log.severity_number, 9) where log.severity_text == "INFO"	
             - set(log.severity_text, "DEBUG") where IsMatch(log.body, "(?i)(debug|trace|verbose)") and log.severity_text == ""	
             - set(log.severity_number, 5) where log.severity_text == "DEBUG"
+            # Workload Name
+            - set(resource.attributes["k8s.workload.name"], resource.attributes["k8s.deployment.name"]) where resource.attributes["k8s.deployment.name"] != nil and resource.attributes["k8s.deployment.name"] != ""
+            - set(resource.attributes["k8s.workload.name"], resource.attributes["k8s.statefulset.name"]) where resource.attributes["k8s.statefulset.name"] != nil and resource.attributes["k8s.statefulset.name"] != "" and resource.attributes["k8s.workload.name"] == nil
+            - set(resource.attributes["k8s.workload.name"], resource.attributes["k8s.daemonset.name"]) where resource.attributes["k8s.daemonset.name"] != nil and resource.attributes["k8s.daemonset.name"] != "" and resource.attributes["k8s.workload.name"] == nil
+            - set(resource.attributes["k8s.workload.name"], resource.attributes["k8s.replicaset.name"]) where resource.attributes["k8s.replicaset.name"] != nil and resource.attributes["k8s.replicaset.name"] != "" and resource.attributes["k8s.workload.name"] == nil
+            # Workload Type
+            - set(resource.attributes["k8s.workload.type"], "deployment") where resource.attributes["k8s.deployment.name"] != nil and resource.attributes["k8s.workload.type"] == nil
+            - set(resource.attributes["k8s.workload.type"], "statefulset") where resource.attributes["k8s.statefulset.name"] != nil and resource.attributes["k8s.workload.type"] == nil
+            - set(resource.attributes["k8s.workload.type"], "daemonset") where resource.attributes["k8s.daemonset.name"] != nil and resource.attributes["k8s.workload.type"] == nil
+            - set(resource.attributes["k8s.workload.type"], "replicaset") where resource.attributes["k8s.replicaset.name"] != nil and resource.attributes["k8s.workload.type"] == nil
+            - set(resource.attributes["k8s.workload.type"], "unknown") where resource.attributes["k8s.workload.type"] == nil and resource.attributes["k8s.namespace.name"] != nil
+
 
     exporters:
       clickhouse:
