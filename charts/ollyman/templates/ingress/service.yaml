@@ -5,7 +5,7 @@ metadata:
   namespace: monitoring
 spec:
   type: LoadBalancer
-  loadBalancerIP: {{.Values.ingress.ip}}
+  loadBalancerIP: {{.Values.otelcol.ingress.ip}}
   selector:
     app: otelcol-ingress
   ports:

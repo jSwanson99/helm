@@ -1,26 +1,26 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: clickhouse
+  name: {{ .Values.clickhouse.service.name }}
   namespace: monitoring
   labels:
-    app: clickhouse
+    app: {{ .Values.clickhouse.service.name }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: clickhouse
+      app: {{ .Values.clickhouse.service.name }}
   template:
     metadata:
       labels:
-        app: clickhouse
+        app: {{ .Values.clickhouse.service.name }}
     spec:
       securityContext:
         runAsUser: 1100
         runAsGroup: 1100
         fsGroup: 1100
       containers:
-      - name: clickhouse
+      - name: {{ .Values.clickhouse.service.name }}
         image: {{ .Values.clickhouse.image }}
         ports:
         - containerPort: {{ .Values.clickhouse.nativePort }}
@@ -39,7 +39,7 @@ spec:
       volumes:
         - name: clickhouse-data
           persistentVolumeClaim:
-            claimName: clickhouse-pvc
+            claimName: {{ .Values.clickhouse.pvcName }}
         - name: clickhouse-config
           configMap:
             name: clickhouse-config

@@ -1,10 +1,9 @@
+namespace: monitoring
+
 components:
   k8s_monitoring: true
   ingress_gateway: true
   data_processing: true
-  
-ingress:
-  ip: ''
 
 opentelemetry-kube-stack: {}
 
@@ -14,10 +13,17 @@ clickhouse:
   storageClassName: truenas-nfs # TODO
   nativePort: 9000
   httpPort: 8123
+  pvcName: clickhouse-pvc
   service:
     name: clickhouse
+    type: ClusterIP
+    loadBalancerIP: ""
   mcp:
     enable: true
     transport: http
     port: 9000
   image: clickhouse/clickhouse-server:25.1.5
+
+otelcol:
+  ingress:
+    ip: ''
