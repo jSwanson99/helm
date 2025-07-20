@@ -1,25 +1,25 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: clickhouse-mcp
+  name: {{ .Values.clickhouse.mcp.service.name }}
   namespace: monitoring
   labels:
-    app: clickhouse-mcp
+    app: {{ .Values.clickhouse.mcp.service.name }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: clickhouse-mcp
+      app: {{ .Values.clickhouse.mcp.service.name }}
   template:
     metadata:
       labels:
-        app: clickhouse-mcp
+        app: {{ .Values.clickhouse.mcp.service.name }}
     spec:
       containers:
       - name: clickhouse
         image: mcp/clickhouse:latest
         ports:
-        - containerPort: {{ .Values.clickhouse.mcp.port }}
+        - containerPort: 8000
         env:
         - name: CLICKHOUSE_USER
           value: {{ .Values.clickhouse.user }}
@@ -28,4 +28,6 @@ spec:
         - name: CLICKHOUSE_HOST
           value: {{ .Values.clickhouse.service.name }}
         - name: CLICKHOUSE_MCP_SERVER_TRANSPORT
-          value: {{ .Values.clickhouse.mcp.transport }}
+          value: http
+        - name: CLICKHOUSE_PORT
+          value: "80"

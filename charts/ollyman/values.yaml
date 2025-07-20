@@ -20,8 +20,10 @@ clickhouse:
     loadBalancerIP: ""
   mcp:
     enable: true
-    transport: http
-    port: 9000
+    service:
+      type: ClusterIP
+      name: clickhouse-mcp
+      loadBalancerIP: ""
   image: clickhouse/clickhouse-server:25.1.5
 
 otelcol:

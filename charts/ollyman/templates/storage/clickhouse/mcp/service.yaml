@@ -1,16 +1,20 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: clickhouse-mcp
+  name: {{ .Values.clickhouse.mcp.service.name }}
   namespace: monitoring
 spec:
-  type: LoadBalancer
+  {{- if eq .Values.clickhouse.mcp.service.type "LoadBalancer" }}
+  {{- if .Values.clickhouse.service.mcp.loadBalancerIP }}
+  loadBalancerIP: {{ .Values.clickhouse.mcp.service.loadBalancerIP }}
+  {{- end }}
+  {{- end }}
+  type: {{ .Values.clickhouse.mcp.service.type }}
   selector:
-    app: clickhouse-mcp
+    app: {{ .Values.clickhouse.mcp.service.name }}
   ports:
-  - name: client
-    port: {{ .Values.clickhouse.nativePort }}
-    targetPort: 9000
-  - name: http
-    port: {{ .Values.clickhouse.httpPort }}
-    targetPort: 8123
+  - containerPort: 8000
+    name: streamable-http
+    port: 8000
+    protocol: TCP
+    targetPort: 8000
