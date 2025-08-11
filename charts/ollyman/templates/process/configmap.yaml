@@ -57,6 +57,13 @@ data:
             - set(resource.attributes["k8s.workload.type"], "daemonset") where resource.attributes["k8s.daemonset.name"] != nil and resource.attributes["k8s.workload.type"] == nil
             - set(resource.attributes["k8s.workload.type"], "replicaset") where resource.attributes["k8s.replicaset.name"] != nil and resource.attributes["k8s.workload.type"] == nil
             - set(resource.attributes["k8s.workload.type"], "unknown") where resource.attributes["k8s.workload.type"] == nil and resource.attributes["k8s.namespace.name"] != nil
+    transform/pfsense:
+      - conditions:
+          - resource.attributes("service.name") == "pfsense"
+        statements:
+          - set(attributes, ExtractPatterns(body, "^<(?P<priority>\\d+)>(?P<timestamp>\\S+ \\S+ \\S+) (?P<process>\\S+)\\[(?P<pid>\\d+)\\]: (?P<message>.*)$"))
+          - set(attributes["facility"], Int(attributes["priority"]) / 8) where attributes["priority"] != nil
+          - set(attributes["severity"], Int(attributes["priority"]) % 8) where attributes["priority"] != nil
 
 
     exporters:
@@ -81,7 +88,7 @@ data:
           exporters: [clickhouse]
         logs:
           receivers: [otlp]
-          processors: [transform, batch] 
+          processors: [transform, transform/pfsense, batch] 
           exporters: [clickhouse]
         metrics:
           receivers: [otlp]

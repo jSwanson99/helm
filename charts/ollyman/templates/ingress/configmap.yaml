@@ -19,6 +19,13 @@ data:
           listen_address: "0.0.0.0:1514"
           add_attributes: true
         protocol: rfc5424
+      syslog/pfsense:
+        udp:
+          listen_address: "0.0.0.0:1515"
+          add_attributes: true
+        protocol: rfc5424
+        resource:
+          service.name: pfsense
 
       # TODO - not used
       prometheus:
@@ -82,7 +89,7 @@ data:
           processors: [transform]
           exporters: [loadbalancing]
         logs:
-          receivers: [otlp, syslog]
+          receivers: [otlp, syslog, syslog/pfsense]
           processors: [logdedup, transform]
           exporters: [loadbalancing]
         metrics:
