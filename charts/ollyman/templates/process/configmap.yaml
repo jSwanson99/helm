@@ -36,15 +36,15 @@ data:
             - set(resource.attributes["service.name"], log.attributes["hostname"]) where resource.attributes["service.name"] == nil
             - set(log.body, Trim(log.attributes["message"])) where resource.attributes["service.name"] == "vyos"
             # Log Level, primarily for k8s logs
-            - set(log.severity_text, "FATAL") where IsMatch(log.body, "(?i)(fatal|panic|critical|segmentation fault|out of memory)") and log.severity_text == ""	
-            - set(log.severity_number, 21) where log.severity_text == "FATAL"	
-            - set(log.severity_text, "ERROR") where IsMatch(log.body, "(?i)(error|failed|failure|exception|stacktrace|traceback)") and log.severity_text == ""	
-            - set(log.severity_number, 17) where log.severity_text == "ERROR"	
-            - set(log.severity_text, "WARN") where IsMatch(log.body, "(?i)(warn|warning|deprecated|retry|timeout)") and  log.severity_text == ""	
-            - set(log.severity_number, 13) where log.severity_text == "WARN"	
-            - set(log.severity_text, "INFO") where IsMatch(log.body, "(?i)(info|information|starting|started|stopping|stopped|ready|healthy)") and log.severity_text == ""	
-            - set(log.severity_number, 9) where log.severity_text == "INFO"	
-            - set(log.severity_text, "DEBUG") where IsMatch(log.body, "(?i)(debug|trace|verbose)") and log.severity_text == ""	
+            - set(log.severity_text, "FATAL") where IsMatch(log.body, "(?i)(fatal|panic|critical|segmentation fault|out of memory)") and log.severity_text == ""
+            - set(log.severity_number, 21) where log.severity_text == "FATAL"
+            - set(log.severity_text, "ERROR") where IsMatch(log.body, "(?i)(error|failed|failure|exception|stacktrace|traceback)") and log.severity_text == ""
+            - set(log.severity_number, 17) where log.severity_text == "ERROR"
+            - set(log.severity_text, "WARN") where IsMatch(log.body, "(?i)(warn|warning|deprecated|retry|timeout)") and  log.severity_text == ""
+            - set(log.severity_number, 13) where log.severity_text == "WARN"
+            - set(log.severity_text, "INFO") where IsMatch(log.body, "(?i)(info|information|starting|started|stopping|stopped|ready|healthy)") and log.severity_text == ""
+            - set(log.severity_number, 9) where log.severity_text == "INFO"
+            - set(log.severity_text, "DEBUG") where IsMatch(log.body, "(?i)(debug|trace|verbose)") and log.severity_text == ""
             - set(log.severity_number, 5) where log.severity_text == "DEBUG"
             # Workload Name
             - set(resource.attributes["k8s.workload.name"], resource.attributes["k8s.deployment.name"]) where resource.attributes["k8s.deployment.name"] != nil and resource.attributes["k8s.deployment.name"] != ""
@@ -57,13 +57,16 @@ data:
             - set(resource.attributes["k8s.workload.type"], "daemonset") where resource.attributes["k8s.daemonset.name"] != nil and resource.attributes["k8s.workload.type"] == nil
             - set(resource.attributes["k8s.workload.type"], "replicaset") where resource.attributes["k8s.replicaset.name"] != nil and resource.attributes["k8s.workload.type"] == nil
             - set(resource.attributes["k8s.workload.type"], "unknown") where resource.attributes["k8s.workload.type"] == nil and resource.attributes["k8s.namespace.name"] != nil
-    transform/pfsense:
-      - conditions:
-          - resource.attributes("service.name") == "pfsense"
-        statements:
-          - set(attributes, ExtractPatterns(body, "^<(?P<priority>\\d+)>(?P<timestamp>\\S+ \\S+ \\S+) (?P<process>\\S+)\\[(?P<pid>\\d+)\\]: (?P<message>.*)$"))
-          - set(attributes["facility"], Int(attributes["priority"]) / 8) where attributes["priority"] != nil
-          - set(attributes["severity"], Int(attributes["priority"]) % 8) where attributes["priority"] != nil
+      transform/pfsense:
+        log_statements:
+        - conditions:
+            - resource.attributes["service.name"] == "pfsense"
+          statements:
+            - 'set(log.attributes, ExtractPatterns(log.body, "^<(?P<priority>\\d+)>(?P<timestamp>\\S+ \\S+ \\S+) (?P<process>\\S+)\\[(?P<pid>\\d+)\\]: (?P<message>.*)$"))'
+            - set(log.attributes["facility"], Int(log.attributes["priority"]) / 8) where log.attributes["priority"] != nil
+            - set(log.attributes["severity"], Int(log.attributes["priority"]) % 8) where log.attributes["priority"] != nil
+            - set(log.body, log.attributes["message"]) where log.attributes["message"] != nil
+            - keep_keys(log.attributes, ["appname", "facility", "priority", "severity", "proc_id"])
 
 
     exporters:
@@ -84,13 +87,13 @@ data:
       pipelines:
         traces:
           receivers: [otlp]
-          processors: [transform, batch] 
+          processors: [transform, batch]
           exporters: [clickhouse]
         logs:
           receivers: [otlp]
-          processors: [transform, transform/pfsense, batch] 
+          processors: [transform, transform/pfsense, batch]
           exporters: [clickhouse]
         metrics:
           receivers: [otlp]
-          processors: [transform, batch] 
+          processors: [transform, batch]
           exporters: [clickhouse]
