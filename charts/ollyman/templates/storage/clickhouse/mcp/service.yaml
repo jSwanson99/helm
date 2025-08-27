@@ -13,8 +13,7 @@ spec:
   selector:
     app: {{ .Values.clickhouse.mcp.service.name }}
   ports:
-  - containerPort: 8000
-    name: streamable-http
+  - name: streamable-http
     port: 8000
     protocol: TCP
     targetPort: 8000

@@ -64,9 +64,8 @@ data:
           statements:
             - 'set(log.attributes, ExtractPatterns(log.body, "^<(?P<priority>\\d+)>(?P<timestamp>\\S+ \\S+ \\S+) (?P<process>\\S+)\\[(?P<pid>\\d+)\\]: (?P<message>.*)$"))'
             - set(log.attributes["facility"], Int(log.attributes["priority"]) / 8) where log.attributes["priority"] != nil
-            - set(log.attributes["severity"], Int(log.attributes["priority"]) % 8) where log.attributes["priority"] != nil
             - set(log.body, log.attributes["message"]) where log.attributes["message"] != nil
-            - keep_keys(log.attributes, ["appname", "facility", "priority", "severity", "proc_id"])
+            - keep_keys(log.attributes, ["process", "priority", "facility", "proc_id"])
 
 
     exporters:
