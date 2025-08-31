@@ -402,7 +402,7 @@ data:
 
         <!-- Configure other thread pools: -->
         <background_buffer_flush_schedule_pool_size>2</background_buffer_flush_schedule_pool_size>
-        <background_pool_size>1</background_pool_size>
+        <background_pool_size>2</background_pool_size>
         <background_merges_mutations_concurrency_ratio>1</background_merges_mutations_concurrency_ratio>
         <background_merges_mutations_scheduling_policy>round_robin</background_merges_mutations_scheduling_policy>
         <background_move_pool_size>1</background_move_pool_size>

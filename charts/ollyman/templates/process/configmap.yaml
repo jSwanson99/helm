@@ -75,7 +75,7 @@ data:
         username: admin
         password: admin
         sending_queue:
-          queue_size: 1000
+          queue_size: 10000
         retry_on_failure:
           enabled: true
           initial_interval: 5s
