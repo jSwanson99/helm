@@ -62,7 +62,7 @@ data:
         - conditions:
             - resource.attributes["service.name"] == "pfsense"
           statements:
-            - 'set(log.attributes, ExtractPatterns(log.body, "^<(?P<priority>\\d+)>(?P<timestamp>\\S+ \\S+ \\S+) (?P<process>\\S+)\\[(?P<pid>\\d+)\\]: (?P<message>.*)$"))'
+            - 'set(log.attributes, ExtractPatterns(log.body, "^<(?P<priority>\\d+)>(?P<timestamp>\\S+\\s+\\S+\\s+\\S+) (?P<process>\\S+)\\[(?P<pid>\\d+)\\]: (?P<message>.*)$"))'
             - set(log.attributes["facility"], Int(log.attributes["priority"]) / 8) where log.attributes["priority"] != nil
             - set(log.body, log.attributes["message"]) where log.attributes["message"] != nil
             - keep_keys(log.attributes, ["process", "priority", "facility", "proc_id"])
@@ -72,7 +72,7 @@ data:
             - resource.attributes["service.name"] == "coredns"
             - IsMap(log.body) and log.body["MESSAGE"] != nil and IsMatch(log.body["MESSAGE"], "^\\[INFO\\]")
           statements:
-            - set(log.attributes, ExtractPatterns(log.body["MESSAGE"], "(?P<level>\\S+) (?P<client_ip>\\S+):(?P<client_port>\\S+) - (?P<query_id>\\S+) \\\"(?P<type>\\S+) (?P<class>\\S+) (?P<name>\\S+) (?P<proto>\\S+) (?P<request_size>\\S+) (?P<dnssec_ok>\\S+) (?P<bufsize>\\S+)\\\" (?P<rcode>\\S+) (?P<flags>\\S+) (?P<response_size>\\S+) (?P<duration_seconds>[0-9\\.]+)"))
+            - set(log.attributes, ExtractPatterns(log.body["MESSAGE"], "\\[(?P<level>\\S+)\\] (?P<client_ip>\\S+):(?P<client_port>\\S+) - (?P<query_id>\\S+) \\\"(?P<type>\\S+) (?P<class>\\S+) (?P<name>\\S+) (?P<proto>\\S+) (?P<request_size>\\S+) (?P<dnssec_ok>\\S+) (?P<bufsize>\\S+)\\\" (?P<rcode>\\S+) (?P<flags>\\S+) (?P<response_size>\\S+) (?P<duration_seconds>[0-9\\.]+)"))
             - set(log.body, log.body["MESSAGE"])
 
 
